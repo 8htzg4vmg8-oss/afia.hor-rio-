@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AFIA - Controle</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f5f5f7;
+            margin: 0;
+            padding: 10px;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .container {
+            background-color: #ffffff;
+            width: 100%;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            padding: 16px;
+            box-sizing: border-box;
+        }
+        h2 {
+            text-align: center;
+            margin: 5px 0 2px 0;
+            color: #1d1d1f;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        p.subtitle {
+            text-align: center;
+            margin: 0 0 15px 0;
+            color: #86868b;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        .date-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            background: #f5f5f7;
+            padding: 12px;
+            border-radius: 10px;
+        }
+        .date-container label {
+            font-weight: 600;
+            color: #1d1d1f;
+            font-size: 14px;
+        }
+        .date-container input {
+            font-size: 15px;
+            padding: 6px;
+            border-radius: 8px;
+            border: 1px solid #d2d2d7;
+            background: #fff;
+            color: #1d1d1f;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        th, td {
+            border: 1px solid #e5e5ea;
+            padding: 8px 4px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        th {
+            background-color: #f5f5f7;
+            font-size: 12px;
+            color: #86868b;
+            font-weight: 600;
+        }
+        .time-col {
+            font-weight: 600;
+            width: 22%;
+            color: #1d1d1f;
+            font-size: 16px;
+        }
+        .slots-col {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 2px 0;
+        }
+        .square {
+            width: 38px;
+            height: 38px;
+            border: 2px solid #86868b;
+            border-radius: 8px;
+            background-color: #fff;
+            cursor: pointer;
+            transition: background-color 0.1s, border-color 0.1s;
+        }
+        .square.occupied {
+            background-color: #ff3b30;
+            border-color: #ff3b30;
+        }
+        .interval-row {
+            background-color: #f5f5f7;
+            font-weight: 600;
+            color: #86868b;
+            font-size: 12px;
+            height: 35px;
+        }
+        .total-row {
+            background-color: #f5f5f7;
+            font-weight: 700;
+            font-size: 15px;
+            color: #1d1d1f;
+        }
+        .notes-section {
+            margin-top: 10px;
+        }
+        .notes-section label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #1d1d1f;
+            font-size: 14px;
+        }
+        .notes-section textarea {
+            width: 100%;
+            height: 70px;
+            border-radius: 10px;
+            border: 1px solid #d2d2d7;
+            padding: 10px;
+            box-sizing: border-box;
+            resize: none;
+            font-family: inherit;
+            font-size: 14px;
+            background: #fff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>AFIA</h2>
+    <p class="subtitle">CONTROLE DIÁRIO</p>
+
+    <div class="date-container">
+        <label>Data:</label>
+        <input type="date" id="app-date">
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>HORÁRIO</th>
+                <th>VAGAS</th>
+            </tr>
+        </thead>
+        <tbody id="table-body">
+        </tbody>
+        <tfoot>
+            <tr class="total-row">
+                <td>TOTAL</td>
+                <td id="total-counter">0 Ocupadas</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="notes-section">
+        <label for="notes">Clientes / Anotações:</label>
+        <textarea id="notes" placeholder="Digite códigos, nomes..."></textarea>
+    </div>
+</div>
+
+<script>
+    const horariosManha = ["09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00"];
+    const horariosTarde = ["14:30", "15:00", "15:30", "16:00", "16:30"];
+    
+    const dateInput = document.getElementById('app-date');
+    const tableBody = document.getElementById('table-body');
+    const totalCounter = document.getElementById('total-counter');
+    const notesArea = document.getElementById('notes');
+
+    const agora = new Date();
+    const ano = agora.getFullYear();
+    const mes = String(agora.getMonth() + 1).padStart(2, '0');
+    const dia = String(agora.getDate()).padStart(2, '0');
+    dateInput.value = `${ano}-${mes}-${dia}`;
+
+    function renderTable() {
+        tableBody.innerHTML = "";
+        horariosManha.forEach(h => createRow(h));
+        
+        const intervalRow = document.createElement('tr');
+        intervalRow.className = "interval-row";
+        intervalRow.innerHTML = `<td colspan="2">☕ ALMOÇO / INTERVALO (13:30 às 14:30)</td>`;
+        tableBody.appendChild(intervalRow);
+        
+        horariosTarde.forEach(h => createRow(h));
+        loadData();
+    }
+
+    function createRow(horario) {
+        const tr = document.createElement('tr');
+        const tdTime = document.createElement('td');
+        tdTime.className = "time-col";
+        tdTime.innerText = horario;
+        
+        const tdSlots = document.createElement('td');
+        const slotContainer = document.createElement('div');
+        slotContainer.className = "slots-col";
+        
+        for (let i = 0; i < 5; i++) {
+            const square = document.createElement('div');
+            square.className = "square";
+            square.dataset.time = horario;
+            square.dataset.index = i;
+            square.addEventListener('click', toggleSquare);
+            slotContainer.appendChild(square);
+        }
+        
+        tdSlots.appendChild(slotContainer);
+        tr.appendChild(tdTime);
+        tr.appendChild(tdSlots);
+        tableBody.appendChild(tr);
+    }
+
+    function toggleSquare(e) {
+        e.target.classList.toggle('occupied');
+        updateTotal();
+        saveData();
+    }
+
+    function updateTotal() {
+        const total = document.querySelectorAll('.square.occupied').length;
+        totalCounter.innerText = `${total} Ocupadas`;
+    }
+
+    function getKey() {
+        return `afia_celular_${dateInput.value}`;
+    }
+
+    function saveData() {
+        const data = {
+            squares: [],
+            notes: notesArea.value
+        };
+        document.querySelectorAll('.square').forEach(sq => {
+            if (sq.classList.contains('occupied')) {
+                data.squares.push({ time: sq.dataset.time, index: sq.dataset.index });
+            }
+        });
+        localStorage.setItem(getKey(), JSON.stringify(data));
+    }
+
+    function loadData() {
+        document.querySelectorAll('.square').forEach(sq => sq.classList.remove('occupied'));
+        notesArea.value = "";
+
+        const saved = localStorage.getItem(getKey());
+        if (saved) {
+            const data = JSON.parse(saved);
+            notesArea.value = data.notes || "";
+            if (data.squares) {
+                data.squares.forEach(item => {
+                    const sq = document.querySelector(`.square[data-time="${item.time}"][data-index="${item.index}"]`);
+                    if (sq) sq.classList.add('occupied');
+                });
+            }
+        }
+        updateTotal();
+    }
+
+    dateInput.addEventListener('change', loadData);
+    notesArea.addEventListener('input', saveData);
+    renderTable();
+</script>
+
+</body>
+</html>
