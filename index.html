@@ -1,9 +1,9 @@
-DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AFIA - Controle</title>
+    <title>AFIA - Sistema Integrado</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -31,32 +31,72 @@ DOCTYPE html>
             text-align: center;
             margin: 0 0 15px 0;
             color: #86868b;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             letter-spacing: 1px;
         }
-        .date-container {
+        /* ABAS DE NAVEGAÇÃO */
+        .tabs {
             display: flex;
+            background: #e5e5ea;
+            padding: 2px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .tab-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            padding: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #48484a;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        .tab-btn.active {
+            background: #ffffff;
+            color: #1d1d1f;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        /* ELEMENTOS COMUNS */
+        .date-container, .form-group {
+            margin-bottom: 12px;
+            background: #f5f5f7;
+            padding: 10px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .date-container {
+            flex-direction: row;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
-            background: #f5f5f7;
-            padding: 12px;
-            border-radius: 10px;
         }
-        .date-container label {
+        label {
             font-weight: 600;
             color: #1d1d1f;
             font-size: 14px;
         }
-        .date-container input {
-            font-size: 15px;
-            padding: 6px;
+        input, select, textarea {
+            font-size: 16px; /* Evita zoom automático no iPhone */
+            padding: 8px;
             border-radius: 8px;
             border: 1px solid #d2d2d7;
             background: #fff;
             color: #1d1d1f;
+            box-sizing: border-box;
+            width: 100%;
         }
+        /* TABELA DE HORÁRIOS */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -72,28 +112,24 @@ DOCTYPE html>
             background-color: #f5f5f7;
             font-size: 12px;
             color: #86868b;
-            font-weight: 600;
         }
         .time-col {
             font-weight: 600;
             width: 22%;
             color: #1d1d1f;
-            font-size: 16px;
+            font-size: 15px;
         }
         .slots-col {
             display: flex;
             justify-content: space-around;
             align-items: center;
-            padding: 2px 0;
         }
         .square {
-            width: 38px;
-            height: 38px;
+            width: 32px;
+            height: 32px;
             border: 2px solid #86868b;
-            border-radius: 8px;
+            border-radius: 6px;
             background-color: #fff;
-            cursor: pointer;
-            transition: background-color 0.1s, border-color 0.1s;
         }
         .square.occupied {
             background-color: #ff3b30;
@@ -106,33 +142,60 @@ DOCTYPE html>
             font-size: 12px;
             height: 35px;
         }
-        .total-row {
-            background-color: #f5f5f7;
-            font-weight: 700;
-            font-size: 15px;
-            color: #1d1d1f;
-        }
-        .notes-section {
+        /* BOTÕES */
+        .btn-submit {
+            background-color: #34c759;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 10px;
+            width: 100%;
+            cursor: pointer;
             margin-top: 10px;
         }
-        .notes-section label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 6px;
-            color: #1d1d1f;
-            font-size: 14px;
+        /* LISTA DE OS */
+        .os-list {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
-        .notes-section textarea {
-            width: 100%;
-            height: 70px;
+        .os-card {
+            border: 1px solid #e5e5ea;
             border-radius: 10px;
-            border: 1px solid #d2d2d7;
             padding: 10px;
-            box-sizing: border-box;
-            resize: none;
-            font-family: inherit;
-            font-size: 14px;
             background: #fff;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .os-card .time-tag {
+            background: #007aff;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 700;
+            display: inline-block;
+            margin-bottom: 5px;
+        }
+        .os-card p {
+            margin: 3px 0;
+            font-size: 14px;
+            color: #333;
+        }
+        .btn-delete {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ff3b30;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            font-size: 11px;
+            border-radius: 5px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -140,138 +203,288 @@ DOCTYPE html>
 
 <div class="container">
     <h2>AFIA</h2>
-    <p class="subtitle">CONTROLE DIÁRIO</p>
+    <p class="subtitle">SISTEMA INTEGRADO DE GESTÃO</p>
 
-    <div class="date-container">
-        <label>Data:</label>
-        <input type="date" id="app-date">
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('agenda')">📅 Agenda</button>
+        <button class="tab-btn" onclick="switchTab('nova-os')">📝 Nova OS</button>
+        <button class="tab-btn" onclick="switchTab('clientes')">🔍 Clientes</button>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>HORÁRIO</th>
-                <th>VAGAS</th>
-            </tr>
-        </thead>
-        <tbody id="table-body">
-        </tbody>
-        <tfoot>
-            <tr class="total-row">
-                <td>TOTAL</td>
-                <td id="total-counter">0 Ocupadas</td>
-            </tr>
-        </tfoot>
-    </table>
+    <div id="tab-agenda" class="tab-content active">
+        <div class="date-container">
+            <label>Data de Visualização:</label>
+            <input type="date" id="agenda-date" onchange="renderAgenda()">
+        </div>
 
-    <div class="notes-section">
-        <label for="notes">Clientes / Anotações:</label>
-        <textarea id="notes" placeholder="Digite códigos, nomes..."></textarea>
+        <table>
+            <thead>
+                <tr>
+                    <th>HORÁRIO</th>
+                    <th>VAGAS OCUPADAS</th>
+                </tr>
+            </thead>
+            <tbody id="agenda-table-body"></tbody>
+        </table>
+
+        <h3 style="font-size: 16px; color: #1d1d1f; margin: 15px 0 5px 0;">Serviços Agendados para o Dia</h3>
+        <div id="day-os-list" class="os-list"></div>
+    </div>
+
+    <div id="tab-nova-os" class="tab-content">
+        <form id="os-form" onsubmit="saveOS(event)">
+            <div class="form-group">
+                <label>Telefone do Cliente:</label>
+                <input type="tel" id="os-phone" placeholder="Ex: 32999999999" required oninput="autocompleteClient()">
+            </div>
+            <div class="form-group">
+                <label>Nome do Cliente:</label>
+                <input type="text" id="os-name" placeholder="Nome Completo" required>
+            </div>
+            <div class="form-group">
+                <label>Quantidade de Ferramentas:</label>
+                <input type="number" id="os-tools" min="1" max="5" value="1" required>
+            </div>
+            <div class="form-group">
+                <label>Data de Entrega:</label>
+                <input type="date" id="os-date" required>
+            </div>
+            <div class="form-group">
+                <label>Horário de Entrega:</label>
+                <select id="os-time" required></select>
+            </div>
+            <button type="submit" class="btn-submit">Salvar Ordem de Serviço</button>
+        </form>
+    </div>
+
+    <div id="tab-clientes" class="tab-content">
+        <div class="form-group">
+            <label>Buscar Histórico por Telefone:</label>
+            <input type="tel" id="search-phone" placeholder="Digite o telefone do cliente..." oninput="searchCustomerHistory()">
+        </div>
+        <div id="customer-history-results" class="os-list"></div>
     </div>
 </div>
 
 <script>
-    const horariosManha = ["09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00"];
+    const horariosManha = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00"];
     const horariosTarde = ["14:30", "15:00", "15:30", "16:00", "16:30"];
-    
-    const dateInput = document.getElementById('app-date');
-    const tableBody = document.getElementById('table-body');
-    const totalCounter = document.getElementById('total-counter');
-    const notesArea = document.getElementById('notes');
+    const todosHorarios = [...horariosManha, ...horariosTarde];
 
+    // Inicialização de datas locais corretas
     const agora = new Date();
     const ano = agora.getFullYear();
     const mes = String(agora.getMonth() + 1).padStart(2, '0');
     const dia = String(agora.getDate()).padStart(2, '0');
-    dateInput.value = `${ano}-${mes}-${dia}`;
+    const dataHoje = `${ano}-${mes}-${dia}`;
 
-    function renderTable() {
-        tableBody.innerHTML = "";
-        horariosManha.forEach(h => createRow(h));
+    document.getElementById('agenda-date').value = dataHoje;
+    document.getElementById('os-date').value = dataHoje;
+
+    // Popula o select de horários do formulário
+    const selectTime = document.getElementById('os-time');
+    todosHorarios.forEach(h => {
+        let opt = document.createElement('option');
+        opt.value = h;
+        opt.innerText = h;
+        selectTime.appendChild(opt);
+    });
+
+    // Alternar entre abas
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
         
+        event.target.classList.add('active');
+        document.getElementById(`tab-${tabName}`).classList.add('active');
+        
+        if(tabName === 'agenda') renderAgenda();
+    }
+
+    // Banco de Dados locais no LocalStorage
+    function getOSList() { return JSON.parse(localStorage.getItem('afia_os_db') || '[]'); }
+    function setOSList(list) { localStorage.setItem('afia_os_db', JSON.stringify(list)); }
+    function getClientsMap() { return JSON.parse(localStorage.getItem('afia_clients_map') || '{}'); }
+    function setClientsMap(map) { localStorage.setItem('afia_clients_map', JSON.stringify(map)); }
+
+    // Autocomplete por telefone
+    function autocompleteClient() {
+        const phone = document.getElementById('os-phone').value;
+        const clients = getClientsMap();
+        if (clients[phone]) {
+            document.getElementById('os-name').value = clients[phone];
+        }
+    }
+
+    // Salvar Nova OS com validação de bloqueio
+    function saveOS(e) {
+        e.preventDefault();
+        const phone = document.getElementById('os-phone').value;
+        const name = document.getElementById('os-name').value;
+        const tools = parseInt(document.getElementById('os-tools').value);
+        const date = document.getElementById('os-date').value;
+        const time = document.getElementById('os-time').value;
+
+        const osList = getOSList();
+
+        // Calcular vagas já ocupadas naquele dia e horário
+        const jaOcupadas = osList
+            .filter(os => os.date === date && os.time === time)
+            .reduce((sum, os) => sum + os.tools, 0);
+
+        if (jaOcupadas + tools > 5) {
+            const restantes = 5 - jaOcupadas;
+            alert(`⚠️ HORÁRIO BLOQUEADO!\n\nO horário de ${time} já possui ${jaOcupadas} ferramentas agendadas.\nRestam apenas ${restantes} vaga(s). Você tentou colocar ${tools}.`);
+            return;
+        }
+
+        // Adiciona a nova OS
+        const novaOS = { id: Date.now(), phone, name, tools, date, time };
+        osList.push(novaOS);
+        setOSList(osList);
+
+        // Salva cliente para autocomplete futuro
+        const clients = getClientsMap();
+        clients[phone] = name;
+        setClientsMap(clients);
+
+        alert('✅ Ordem de Serviço salva com sucesso e vagas reservadas!');
+        document.getElementById('os-form').reset();
+        document.getElementById('os-date').value = dataHoje;
+        
+        // Volta para a aba da agenda atualizada
+        document.querySelectorAll('.tab-btn')[0].click();
+    }
+
+    // Deletar OS (libera vagas automaticamente)
+    function deleteOS(id) {
+        if(confirm("Tem certeza que deseja apagar esta Ordem de Serviço? As vagas serão liberadas.")) {
+            let osList = getOSList();
+            osList = osList.filter(os => os.id !== id);
+            setOSList(osList);
+            renderAgenda();
+        }
+    }
+
+    // Renderizar a Agenda baseada nas OS salvas
+    function renderAgenda() {
+        const targetDate = document.getElementById('agenda-date').value;
+        const osList = getOSList();
+        const tableBody = document.getElementById('agenda-table-body');
+        tableBody.innerHTML = "";
+
+        // Agrupa quantidade de ferramentas por horário no dia escolhido
+        const ocupacaoPorHorario = {};
+        todosHorarios.forEach(h => ocupacaoPorHorario[h] = 0);
+        
+        const osDoDia = osList.filter(os => os.date === targetDate);
+        osDoDia.forEach(os => {
+            if(ocupacaoPorHorario[os.time] !== undefined) {
+                ocupacaoPorHorario[os.time] += os.tools;
+            }
+        });
+
+        // Constrói as linhas da tabela
+        function criarLinha(h) {
+            const tr = document.createElement('tr');
+            const tdTime = document.createElement('td');
+            tdTime.className = "time-col";
+            tdTime.innerText = h;
+
+            const tdSlots = document.createElement('td');
+            const slotContainer = document.createElement('div');
+            slotContainer.className = "slots-col";
+
+            const totalOcupadoNoHorario = ocupacaoPorHorario[h];
+
+            for (let i = 0; i < 5; i++) {
+                const square = document.createElement('div');
+                square.className = "square";
+                if (i < totalOcupadoNoHorario) {
+                    square.classList.add('occupied'); // Fica vermelho automático
+                }
+                slotContainer.appendChild(square);
+            }
+
+            tdSlots.appendChild(slotContainer);
+            tr.appendChild(tdTime);
+            tr.appendChild(tdSlots);
+            tableBody.appendChild(tr);
+        }
+
+        horariosManha.forEach(h => criarLinha(h));
+
+        // Linha de Intervalo
         const intervalRow = document.createElement('tr');
         intervalRow.className = "interval-row";
         intervalRow.innerHTML = `<td colspan="2">☕ ALMOÇO / INTERVALO (13:30 às 14:30)</td>`;
         tableBody.appendChild(intervalRow);
-        
-        horariosTarde.forEach(h => createRow(h));
-        loadData();
-    }
 
-    function createRow(horario) {
-        const tr = document.createElement('tr');
-        const tdTime = document.createElement('td');
-        tdTime.className = "time-col";
-        tdTime.innerText = horario;
+        horariosTarde.forEach(h => criarLinha(h));
+
+        // Lista textual das OS do dia abaixo da tabela
+        const listDiv = document.getElementById('day-os-list');
+        listDiv.innerHTML = "";
         
-        const tdSlots = document.createElement('td');
-        const slotContainer = document.createElement('div');
-        slotContainer.className = "slots-col";
-        
-        for (let i = 0; i < 5; i++) {
-            const square = document.createElement('div');
-            square.className = "square";
-            square.dataset.time = horario;
-            square.dataset.index = i;
-            square.addEventListener('click', toggleSquare);
-            slotContainer.appendChild(square);
+        if(osDoDia.length === 0) {
+            listDiv.innerHTML = "<p style='color:#86868b; font-size:13px;'>Nenhuma ferramenta agendada para este dia.</p>";
+            return;
         }
-        
-        tdSlots.appendChild(slotContainer);
-        tr.appendChild(tdTime);
-        tr.appendChild(tdSlots);
-        tableBody.appendChild(tr);
-    }
 
-    function toggleSquare(e) {
-        e.target.classList.toggle('occupied');
-        updateTotal();
-        saveData();
-    }
+        // Ordena por horário
+        osDoDia.sort((a,b) => a.time.localeCompare(b.time));
 
-    function updateTotal() {
-        const total = document.querySelectorAll('.square.occupied').length;
-        totalCounter.innerText = `${total} Ocupadas`;
-    }
-
-    function getKey() {
-        return `afia_celular_${dateInput.value}`;
-    }
-
-    function saveData() {
-        const data = {
-            squares: [],
-            notes: notesArea.value
-        };
-        document.querySelectorAll('.square').forEach(sq => {
-            if (sq.classList.contains('occupied')) {
-                data.squares.push({ time: sq.dataset.time, index: sq.dataset.index });
-            }
+        osDoDia.forEach(os => {
+            const card = document.createElement('div');
+            card.className = "os-card";
+            card.innerHTML = `
+                <span class="time-tag">${os.time}</span>
+                <button class="btn-delete" onclick="deleteOS(${os.id})">Apagar</button>
+                <p><strong>Cliente:</strong> ${os.name}</p>
+                <p><strong>Tel:</strong> ${os.phone}</p>
+                <p><strong>Quantidade:</strong> ${os.tools} ferramenta(s)</p>
+            `;
+            listDiv.appendChild(card);
         });
-        localStorage.setItem(getKey(), JSON.stringify(data));
     }
 
-    function loadData() {
-        document.querySelectorAll('.square').forEach(sq => sq.classList.remove('occupied'));
-        notesArea.value = "";
+    // Buscar histórico total de um cliente pela aba 3
+    function searchCustomerHistory() {
+        const phone = document.getElementById('search-phone').value;
+        const resultsDiv = document.getElementById('customer-history-results');
+        resultsDiv.innerHTML = "";
 
-        const saved = localStorage.getItem(getKey());
-        if (saved) {
-            const data = JSON.parse(saved);
-            notesArea.value = data.notes || "";
-            if (data.squares) {
-                data.squares.forEach(item => {
-                    const sq = document.querySelector(`.square[data-time="${item.time}"][data-index="${item.index}"]`);
-                    if (sq) sq.classList.add('occupied');
-                });
-            }
+        if(phone.trim() === "") return;
+
+        const osList = getOSList();
+        const historico = osList.filter(os => os.phone.includes(phone));
+
+        if(historico.length === 0) {
+            resultsDiv.innerHTML = "<p style='color:#86868b; font-size:13px;'>Nenhum registro encontrado para este telefone.</p>";
+            return;
         }
-        updateTotal();
+
+        // Ordena as ordens mais recentes primeiro
+        historico.sort((a,b) => b.date.localeCompare(a.date) || b.time.localeCompare(a.time));
+
+        historico.forEach(os => {
+            // Formata data de AAAA-MM-DD para DD/MM/AAAA apenas para exibição
+            const [ano, mes, dia] = os.date.split('-');
+            const dataFormatada = `${dia}/${mes}/${ano}`;
+
+            const card = document.createElement('div');
+            card.className = "os-card";
+            card.innerHTML = `
+                <span class="time-tag" style="background:#34c759;">${dataFormatada} - ${os.time}</span>
+                <p><strong>Cliente:</strong> ${os.name}</p>
+                <p><strong>Ferramentas amoladas:</strong> ${os.tools}</p>
+            `;
+            resultsDiv.appendChild(card);
+        });
     }
 
-    dateInput.addEventListener('change', loadData);
-    notesArea.addEventListener('input', saveData);
-    renderTable();
+    // Inicializa a tabela ao abrir
+    renderAgenda();
 </script>
 
 </body>
